@@ -12,11 +12,9 @@ def iniciar_financeiro_fashionflow():
             print("FashionFlow: Atendimento encerrado. Tenha um otimo dia!")
             break
 
-        
         elif "bom dia" in msg or "boa tarde" in msg or "boa noite" in msg or "ola" in msg or "oi" in msg:
             print("FashionFlow: Ola, tudo bem? Somos a FashionFlow! Voce esta conversando com o setor Financeiro. Como podemos te ajudar?")
 
-        
         elif "pagamento" in msg or "cartao" in msg or "a vista" in msg:
             print("FashionFlow: Nossas formas de pagamento sao pix e cartao debito/credito.")
 
