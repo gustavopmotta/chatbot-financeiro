@@ -1,0 +1,12 @@
+intencao,palavras,resposta
+saudacoes,"bom dia, boa tarde, boa noite, ola, oi","Ola, tudo bem? Somos a FashionFlow! Voce esta conversando com o setor Financeiro. Como podemos te ajudar?"
+pagamento,"pagamento, cartao, a vista",Nossas formas de pagamento sao pix e cartao debito/credito.
+devolucao,"devolver, estorno, reembolso","Iremos reembolsar o seu valor no prazo de 3 dias, por favor, devolva a peca de roupa na nossa unidade mais proxima de voce!"
+nota_fiscal,"nota, cupom fiscal, nf-e, nfe","Precisamos de alguns dados do seu pedido para realizarmos a nova emissao do seu cupom fiscal! Por favor, envie: Nome Completo, CPF e ID do Pedido."
+debito,"debito, divida, dever, negociar, regularizar","Voce esta em debito com a nossa empresa? Se Sim, confirma pra gente prosseguir com o seu atendimento."
+imposto,"imposto, renda, cnpj","Certo! Para consultar impostos, preciso dos dados do: Seu CNPJ; Seu Nome; Nome Fantasia da Instituicao."
+boleto,"boleto, segunda via, nova via",Certo! Vamos prosseguir com o andamento da sua segunda via. Voce e PF ou PJ?
+status,status,Ok. Verificamos aqui e o status do seu pagamento e confirmado.
+frete,"frete, calcular",Vamos calcular o valor do seu frete. Nos diga o endereco e o CEP.
+desconto,"desconto, porcentagem","Vamos verificar se e possivel aplicar a taxa de desconto acerca deste lote/produto. Por favor, aguarde que voce sera encaminhado a um dos nossos representantes."
+consulta,"consulta, orcamento, producao","Nos envie a lista de materiais e orcamento estimado, para verificarmos se ha disponibilidade de liberarmos o orcamento."
