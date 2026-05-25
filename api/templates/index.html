@@ -552,73 +552,73 @@
 </head>
 <body>
 
-<div class="shell">
-
-  <!-- --------- Sidebar --------- -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-tag">e-commerce</div>
-      <div class="brand-name">Milka<em>Bot</em></div>
-      <div class="brand-sector">Setor Financeiro</div>
-    </div>
-
-    <div class="sidebar-sep"></div>
-    <div class="quick-title">Acesso Rápido</div>
-
-    <ul class="quick-list">
-      <li><button onclick="enviarOpcao('Formas de pagamento')"><span class="qi">💳</span>Formas de pagamento</button></li>
-      <li><button onclick="enviarOpcao('Estorno e reembolso')"><span class="qi">🔄</span>Estorno / Reembolso</button></li>
-      <li><button onclick="enviarOpcao('Nota fiscal')"><span class="qi">🧾</span>Nota Fiscal</button></li>
-      <li><button onclick="enviarOpcao('Calcular frete')"><span class="qi">🚚</span>Calcular Frete</button></li>
-      <li><button onclick="enviarOpcao('Segunda via boleto')"><span class="qi">📄</span>Segunda Via Boleto</button></li>
-      <li><button onclick="enviarOpcao('Negociar dívida')"><span class="qi">📋</span>Negociar Dívida</button></li>
-      <li><button onclick="enviarOpcao('Status do pagamento')"><span class="qi">🔍</span>Status Pagamento</button></li>
-      <li><button onclick="enviarOpcao('Consultar imposto')"><span class="qi">🏛️</span>Consultar Imposto</button></li>
-    </ul>
-
-    <div class="sidebar-sep"></div>
-    
-    <div class="sidebar-bottom">
-      <div class="status-dot"><span class="dot"></span>Bot online · Setor Financeiro</div>
-      <button class="reset-btn" onclick="resetarConversa()">↺ Nova conversa</button>
-    </div>
-  </aside>
-
-  <!-- --------- Chat --------- -->
-  <section class="chat-area">
-    <header class="chat-header">
-      <div class="avatar">🤖</div>
-      <div class="chat-header-info">
-        <h2>Assistente Financeiro</h2>
-        <p>Milka Bot · Online agora</p>
+  <div class="shell">
+  
+    <!-- --------- Sidebar --------- -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-tag">e-commerce</div>
+        <div class="brand-name">Fashion<em>Flow</em></div>
+        <div class="brand-sector">Setor Financeiro</div>
       </div>
-
-      <div class="header-actions">
-        <button class="icon-btn" title="Histórico" onclick="abrirHistorico()">📋</button>
-        <button class="icon-btn" title="Nova conversa" onclick="resetarConversa()">↺</button>
+  
+      <div class="sidebar-sep"></div>
+      <div class="quick-title">Acesso Rápido</div>
+  
+      <ul class="quick-list">
+        <li><button onclick="enviarOpcao('Formas de pagamento')"><span class="qi">💳</span>Formas de pagamento</button></li>
+        <li><button onclick="enviarOpcao('Estorno e reembolso')"><span class="qi">🔄</span>Estorno / Reembolso</button></li>
+        <li><button onclick="enviarOpcao('Nota fiscal')"><span class="qi">🧾</span>Nota Fiscal</button></li>
+        <li><button onclick="enviarOpcao('Calcular frete')"><span class="qi">🚚</span>Calcular Frete</button></li>
+        <li><button onclick="enviarOpcao('Segunda via boleto')"><span class="qi">📄</span>Segunda Via Boleto</button></li>
+        <li><button onclick="enviarOpcao('Negociar dívida')"><span class="qi">📋</span>Negociar Dívida</button></li>
+        <li><button onclick="enviarOpcao('Status do pagamento')"><span class="qi">🔍</span>Status Pagamento</button></li>
+        <li><button onclick="enviarOpcao('Consultar imposto')"><span class="qi">🏛️</span>Consultar Imposto</button></li>
+      </ul>
+  
+      <div class="sidebar-sep"></div>
+      
+      <div class="sidebar-bottom">
+        <div class="status-dot"><span class="dot"></span>Bot online · Setor Financeiro</div>
+        <button class="reset-btn" onclick="resetarConversa()">↺ Nova conversa</button>
       </div>
-    </header>
-
-    <div class="messages" id="messages"></div>
-
-    <div class="input-bar">
-      <div class="input-wrap">
-        <textarea id="inputMsg" rows="1" placeholder="Digite sua mensagem…" 
-                  onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn" id="sendBtn" onclick="enviar()">➤</button>
+    </aside>
+  
+    <!-- --------- Chat --------- -->
+    <section class="chat-area">
+      <header class="chat-header">
+        <div class="avatar">🤖</div>
+        <div class="chat-header-info">
+          <h2>Assistente Financeiro</h2>
+          <p>FashionFlow · Online agora</p>
+        </div>
+  
+        <div class="header-actions">
+          <button class="icon-btn" title="Histórico" onclick="abrirHistorico()">📋</button>
+          <button class="icon-btn" title="Nova conversa" onclick="resetarConversa()">↺</button>
+        </div>
+      </header>
+  
+      <div class="messages" id="messages"></div>
+  
+      <div class="input-bar">
+        <div class="input-wrap">
+          <textarea id="inputMsg" rows="1" placeholder="Digite sua mensagem…" 
+                    onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="enviar()">➤</button>
+        </div>
       </div>
-    </div>
-  </section>
-</div>
-
-<!-- --------- History modal --------- -->
-<div class="modal-bg" id="modalBg" onclick="fecharHistorico(event)">
-  <div class="modal">
-    <h3>📋 Histórico do Atendimento</h3>
-    <div id="histContent"><p style="font-size:.8rem;color:rgba(26,16,24,.4)">Nenhum evento registrado ainda.</p></div>
-    <button class="modal-close" onclick="fecharHistorico()">Fechar</button>
+    </section>
   </div>
-</div>
+  
+  <!-- --------- History modal --------- -->
+  <div class="modal-bg" id="modalBg" onclick="fecharHistorico(event)">
+    <div class="modal">
+      <h3>📋 Histórico do Atendimento</h3>
+      <div id="histContent"><p style="font-size:.8rem;color:rgba(26,16,24,.4)">Nenhum evento registrado ainda.</p></div>
+      <button class="modal-close" onclick="fecharHistorico()">Fechar</button>
+    </div>
+  </div>
 
 <script>
   // --------- Markdown renderer (minimal) ---------
@@ -633,12 +633,16 @@
       .replace(/<p>\|(.*)<\/p>/g, (m) => {
         const rows = m.replace(/<\/?p>/g,'').trim().split('<br>').filter(r => r.trim());
         let html = '<table>';
+
         rows.forEach((row, i) => {
-          if (/^\|[-| ]+\|$/.test(row.trim())) return;
+          if(/^\|[-| ]+\|$/.test(row.trim())) return;
+
           const cells = row.split('|').filter((_,j) => j > 0 && j < row.split('|').length-1);
           const tag = i === 0 ? 'th' : 'td';
+
           html += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
         });
+
         return html + '</table>';
       });
   }
@@ -662,9 +666,10 @@
       </div>`;
     msgs.appendChild(row);
 
-    if (opcoes && opcoes.length) {
+    if(opcoes && opcoes.length) {
       const optsRow = document.createElement('div');
       optsRow.className = 'opts-row';
+
       opcoes.forEach(op => {
         const btn = document.createElement('button');
         btn.className = 'opt-chip';
@@ -672,14 +677,17 @@
         btn.onclick = () => enviarOpcao(op);
         optsRow.appendChild(btn);
       });
+      
       msgs.appendChild(optsRow);
     }
+
     msgs.scrollTop = msgs.scrollHeight;
   }
 
   // --------- Add user message ---------
   function addUserMsg(text, time) {
     const msgs = document.getElementById('messages');
+    
     const row = document.createElement('div');
     row.className = 'msg-row user';
     row.innerHTML = `
@@ -688,6 +696,7 @@
         <div class="bubble user">${text.replace(/</g,'&lt;')}</div>
         <span class="msg-time">${time}</span>
       </div>`;
+
     msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -695,14 +704,17 @@
   // --------- Typing indicator ---------
   function showTyping() {
     const msgs = document.getElementById('messages');
+    
     const row = document.createElement('div');
     row.id = 'typing';
     row.className = 'msg-row typing-row';
+
     row.innerHTML = `
       <div class="msg-avatar bot">🤖</div>
       <div class="typing-bubble">
         <div class="dot-t"></div><div class="dot-t"></div><div class="dot-t"></div>
       </div>`;
+
     msgs.appendChild(row);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -711,13 +723,15 @@
   async function enviar(texto) {
     const input = document.getElementById('inputMsg');
     const msg = (texto || input.value).trim();
-    if (!msg) return;
+
+    if(!msg) return;
 
     input.value = '';
     input.style.height = 'auto';
     document.getElementById('sendBtn').disabled = true;
 
     const now = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
     addUserMsg(msg, now);
     showTyping();
 
@@ -727,11 +741,14 @@
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({mensagem: msg})
       });
+
       const data = await res.json();
+
       addBotMsg(data.resposta, data.tipo, data.opcoes, data.timestamp);
-    } catch (e) {
+    } catch(e) {
       addBotMsg('⚠️ Erro de conexão. Tente novamente.', 'error', [], now);
     }
+
     document.getElementById('sendBtn').disabled = false;
     input.focus();
   }
@@ -739,7 +756,10 @@
   function enviarOpcao(op) { enviar(op); }
 
   function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); }
+    if(e.key === 'Enter' && !e.shiftKey) { 
+      e.preventDefault(); 
+      enviar(); 
+    }
   }
 
   function autoResize(el) {
@@ -750,7 +770,9 @@
   // --------- Reset ---------
   async function resetarConversa() {
     await fetch('/api/reset', {method:'POST'});
+
     document.getElementById('messages').innerHTML = '';
+
     setTimeout(() => enviarOpcao('Olá'), 200);
   }
 
@@ -759,18 +781,17 @@
     const res = await fetch('/api/historico');
     const data = await res.json();
     const el = document.getElementById('histContent');
-    if (!data.historico.length) {
-      el.innerHTML = '<p style="font-size:.8rem;color:rgba(26,16,24,.4)">Nenhum evento registrado ainda.</p>';
-    } else {
-      el.innerHTML = data.historico.map(h => `<div class="hist-item">${h}</div>`).join('');
-    }
+
+    !data.historico.length
+      ? el.innerHTML = '<p style="font-size:.8rem;color:rgba(26,16,24,.4)">Nenhum evento registrado ainda.</p>'
+      : el.innerHTML = data.historico.map(h => `<div class="hist-item">${h}</div>`).join('');
+    
     document.getElementById('modalBg').classList.add('open');
   }
 
   function fecharHistorico(e) {
-    if (!e || e.target === document.getElementById('modalBg') || !e.target) {
+    if(!e || e.target === document.getElementById('modalBg') || !e.target) 
       document.getElementById('modalBg').classList.remove('open');
-    }
   }
 
   // --------- Boot ---------
@@ -778,6 +799,7 @@
     setTimeout(() => enviarOpcao('Olá'), 400);
     document.getElementById('inputMsg').focus();
   };
+
 </script>
 </body>
 </html>

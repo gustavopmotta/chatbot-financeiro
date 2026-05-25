@@ -1,5 +1,5 @@
 intencao,palavras,resposta
-saudacoes,"bom dia, boa tarde, boa noite, ola, olá, oi","Ola, tudo bem? Sou a Milka Bot! Você está conversando com o setor Financeiro. Como podemos te ajudar?"
+saudacoes,"bom dia, boa tarde, boa noite, ola, olá, oi","Olá, tudo bem? Somos a FashionFlow! Você está conversando com o bot do setor Financeiro. Como podemos te ajudar?"
 pagamento,"pagamento, cartao, cartão, à vista",Nossas formas de pagamento sao pix e cartão débito/crédito.
 devolucao,"devolver, estorno, reembolso","Iremos reembolsar o seu valor no prazo de 3 dias, por favor, devolva a peça de roupa na nossa unidade mais próxima de você!"
 nota_fiscal,"nota, cupom fiscal, nf-e, nfe","Precisamos de alguns dados do seu pedido para realizarmos a nova emissão do seu cupom fiscal. Por favor, envie: Nome Completo, CPF e ID do Pedido."
