@@ -558,7 +558,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="brand-tag">e-commerce</div>
-      <div class="brand-name">Fashion<em>Flow</em></div>
+      <div class="brand-name">Milka<em>Bot</em></div>
       <div class="brand-sector">Setor Financeiro</div>
     </div>
 
@@ -590,7 +590,7 @@
       <div class="avatar">🤖</div>
       <div class="chat-header-info">
         <h2>Assistente Financeiro</h2>
-        <p>FashionFlow · Online agora</p>
+        <p>Milka Bot · Online agora</p>
       </div>
 
       <div class="header-actions">
@@ -646,9 +646,11 @@
   // --------- Add bot message ---------
   function addBotMsg(text, tipo, opcoes, time) {
     const msgs = document.getElementById('messages');
+    
     // Remove typing indicator
     const typing = document.getElementById('typing');
-    if (typing) typing.remove();
+    
+    if(typing) typing.remove();
 
     const row = document.createElement('div');
     row.className = 'msg-row';
