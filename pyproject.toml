@@ -5,3 +5,6 @@ description = "Projeto academico financeiro."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = []
+
+[tool.vercel]
+entrypoint = "bot:app"
