@@ -10,7 +10,7 @@ status,status,Ok. Verificamos aqui e o status do seu pagamento e confirmado.
 frete,"frete, calcular",Vamos calcular o valor do seu frete. Nos diga o endereco e o CEP.
 desconto,"desconto, porcentagem","Vamos verificar se e possivel aplicar a taxa de desconto acerca deste lote/produto. Por favor, aguarde que voce sera encaminhado a um dos nossos representantes."
 consulta,"consulta, orcamento, producao","Nos envie a lista de materiais e orcamento estimado, para verificarmos se ha disponibilidade de liberarmos o orcamento."
-d_devolucao,"conta, pix, cart�o, cr�dito, dinheiro,transfer�ncia, banco, pagar, qd, recebo, cai, como recebo","O reembolso � feito pelo mesmo m�todo que voc� utilizou no pagamento:PIX: Cai direto na conta de origem.
-Cart�o: O estorno aparecer� na sua fatura (em at� 2 faturas).
-Boleto: Entraremos em contato para pedir seus dados banc�rios."
-unidades,"loja, unidade, onde, endereco, proxima, perto, localizacao, local","Para encontrar a loja mais perto de voc�, basta clicar neste link: [Link do Mapa de Lojas] ou me enviar o seu CEP que eu verifico agora mesmo!"
+d_devolucao,"conta, pix, cartão, crédito, dinheiro,transferência, banco, pagar, qd, recebo, cai, como recebo","O reembolso é feito pelo mesmo método que você utilizou no pagamento:PIX: Cai direto na conta de origem.
+Cartão: O estorno aparecerá na sua fatura (em até 2 faturas).
+Boleto: Entraremos em contato para pedir seus dados bancários."
+unidades,"loja, unidade, onde, endereco, proxima, perto, localizacao, local","Para encontrar a loja mais perto de você, basta clicar neste link: [Link do Mapa de Lojas] ou me enviar o seu CEP que eu verifico agora mesmo!"
