@@ -39,7 +39,7 @@ def chat_financeiro():
     if not msg:
         return jsonify({"resposta": "FashionFlow: Por favor, envie uma mensagem válida."}), 400
 
-    palavras_saida = ["ok", "certo", "obrigado", "valeu", "vlw", "ajudou", "pronto", "sair"]
+    palavras_saida = ["ok", "certo", "obrigado", "valeu", "vlw", "ajudou", "pronto", "sair", "tchau", "adeus", "até logo", "até mais", "até breve", "até logo", "até mais", "até breve"]
 
     if msg in palavras_saida:
         return jsonify({"resposta": "Financeiro: Atendimento encerrado. A FashionFlow agradece! Tenha um ótimo dia."})
