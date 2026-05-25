@@ -1,16 +1,16 @@
 intencao,palavras,resposta
-saudacoes,"bom dia, boa tarde, boa noite, ola, oi","Ola, tudo bem? Somos a FashionFlow! Voce esta conversando com o setor Financeiro. Como podemos te ajudar?"
-pagamento,"pagamento, cartao, a vista",Nossas formas de pagamento sao pix e cartao debito/credito.
-devolucao,"devolver, estorno, reembolso","Iremos reembolsar o seu valor no prazo de 3 dias, por favor, devolva a peca de roupa na nossa unidade mais proxima de voce!"
-nota_fiscal,"nota, cupom fiscal, nf-e, nfe","Precisamos de alguns dados do seu pedido para realizarmos a nova emissao do seu cupom fiscal! Por favor, envie: Nome Completo, CPF e ID do Pedido."
-debito,"debito, divida, dever, negociar, regularizar","Voce esta em debito com a nossa empresa? Se Sim, confirma pra gente prosseguir com o seu atendimento."
+saudacoes,"bom dia, boa tarde, boa noite, ola, olá, oi","Ola, tudo bem? Somos a FashionFlow! Voce esta conversando com o setor Financeiro. Como podemos te ajudar?"
+pagamento,"pagamento, cartao, cartão, à vista",Nossas formas de pagamento sao pix e cartao debito/credito.
+devolucao,"devolver, estorno, reembolso","Iremos reembolsar o seu valor no prazo de 3 dias, por favor, devolva a peça de roupa na nossa unidade mais proxima de você!"
+nota_fiscal,"nota, cupom fiscal, nf-e, nfe","Precisamos de alguns dados do seu pedido para realizarmos a nova emissão do seu cupom fiscal. Por favor, envie: Nome Completo, CPF e ID do Pedido."
+debito,"debito, débito, divida, dívida, dever, denvendo, negociar, negociação, regularizar","Você está em débito com a nossa empresa? Se Sim, confirme pra gente prosseguir com o seu atendimento."
 imposto,"imposto, renda, cnpj","Certo! Para consultar impostos, preciso dos dados do: Seu CNPJ; Seu Nome; Nome Fantasia da Instituicao."
-boleto,"boleto, segunda via, nova via",Certo! Vamos prosseguir com o andamento da sua segunda via. Voce e PF ou PJ?
+boleto,"boleto, segunda via, nova via",Certo! Vamos prosseguir com o andamento da sua segunda via. Você e PF ou PJ?
 status,status,Ok. Verificamos aqui e o status do seu pagamento e confirmado.
-frete,"frete, calcular",Vamos calcular o valor do seu frete. Nos diga o endereco e o CEP.
-desconto,"desconto, porcentagem","Vamos verificar se e possivel aplicar a taxa de desconto acerca deste lote/produto. Por favor, aguarde que voce sera encaminhado a um dos nossos representantes."
-consulta,"consulta, orcamento, producao","Nos envie a lista de materiais e orcamento estimado, para verificarmos se ha disponibilidade de liberarmos o orcamento."
-d_devolucao,"conta, pix, cartão, crédito, dinheiro,transferência, banco, pagar, qd, recebo, cai, como recebo","O reembolso é feito pelo mesmo método que você utilizou no pagamento:PIX: Cai direto na conta de origem.
+frete,"frete, calcular",Vamos calcular o valor do seu frete. Nos diga o endereço e o CEP.
+desconto,"desconto, descontar, porcentagem, reduzir, taxa","Vamos verificar se e possível aplicar a taxa de desconto acerca deste lote/produto. Por favor, aguarde que você será encaminhado a um dos nossos representantes."
+consulta,"consulta, orcamento, orçamento, producao, produçao, produção","Nos envie a lista de matériais e orçamento estimado, para verificarmos se há disponibilidade de liberarmos o orçamento."
+d_devolucao,"conta, pix, cartão, cartao, crédito, credito, dinheiro, transferência, transferencia, banco, pagar, qd, recebo, cai","O reembolso é feito pelo mesmo método que você utilizou no pagamento: PIX: Cai direto na conta de origem.
 Cartão: O estorno aparecerá na sua fatura (em até 2 faturas).
 Boleto: Entraremos em contato para pedir seus dados bancários."
-unidades,"loja, unidade, onde, endereco, proxima, perto, localizacao, local","Para encontrar a loja mais perto de você, basta clicar neste link: [Link do Mapa de Lojas] ou me enviar o seu CEP que eu verifico agora mesmo!"
+unidades,"loja, unidade, onde, mais próxima, mais proxima, endereco, endereço, proxima, próxima, perto, localizacao, localização, local","Para encontrar a loja mais perto de você, basta clicar neste link: [Link do Mapa de Lojas] ou me enviar o seu CEP que eu verifico agora mesmo!"
