@@ -439,7 +439,7 @@ def processar_mensagem(mensagem: str) -> dict:
 # Rotas da API
 # ─────────────────────────────────────────────
 
-@app.route("/", methods=["POST"])
+@app.route("/api/chat", methods=["POST"])
 def api_chat():
     """Endpoint principal do chatbot."""
     dados = request.get_json(force=True, silent=True) or {}
@@ -479,8 +479,9 @@ def api_historico():
 # ─────────────────────────────────────────────
 
 @app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
 def serve(path):
-    return render_template('index.html')
+    return send_from_directory(app.static_folder, "index.html")
 
 
 if __name__ == "__main__":
