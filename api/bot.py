@@ -3,7 +3,7 @@ from datetime import datetime
 import re
 import os
 
-app = Flask(__name__, static_folder="api", static_url_path="")
+app = Flask(__name__)
 
 # ─────────────────────────────────────────────
 # Estado da sessão (em memória por simplicidade)
