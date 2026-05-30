@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from datetime import datetime
+import csv
 import re
 import os
 
@@ -11,6 +12,10 @@ app = Flask(__name__)
 historico_atendimento: list[str] = []
 estado_conversa: dict = {"fluxo": None, "etapa": 0, "dados": {}}
 
+
+# ─────────────────────────────────────────────
+# Utilitários
+# ─────────────────────────────────────────────
 
 def hora_atual() -> str:
     """Retorna o horário atual formatado HH:MM."""
@@ -38,8 +43,181 @@ def normalizar(texto: str) -> str:
 
 
 # ─────────────────────────────────────────────
+# Carregamento de intenções do CSV
+# ─────────────────────────────────────────────
+
+def carregar_intencoes(caminho: str = "intencoes.csv") -> list[dict]:
+    """
+    Lê o CSV de intenções e retorna uma lista de dicts com:
+      - intencao : identificador da intenção
+      - palavras : lista de palavras-chave normalizadas
+      - resposta : texto de resposta padrão
+    """
+    intencoes = []
+    with open(caminho, newline="", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            intencoes.append({
+                "intencao": row["intencao"].strip(),
+                "palavras": [normalizar(p.strip()) for p in row["palavras"].split(",")],
+                "resposta": row["resposta"].strip(),
+            })
+    return intencoes
+
+
+# Carrega intenções uma única vez ao iniciar o servidor
+INTENCOES: list[dict] = carregar_intencoes()
+
+
+def identificar_intencao(msg: str) -> dict | None:
+    """Percorre as intenções e retorna a primeira que faz match."""
+    for intent in INTENCOES:
+        if any(p in msg for p in intent["palavras"]):
+            return intent
+    return None
+
+
+# ─────────────────────────────────────────────
+# Configuração por intenção
+# Tupla: (fluxo_a_iniciar | None, tipo, opcoes_rapidas, log_msg)
+# ─────────────────────────────────────────────
+INTENCAO_CONFIG: dict[str, tuple] = {
+    # ── Novas intenções do CSV aprimorado ──────────────────────────────
+    "ajuda": (
+        None, "info",
+        ["Formas de pagamento", "Estorno / Reembolso", "Nota Fiscal",
+         "Calcular Frete", "Segunda Via Boleto", "Negociar Divida",
+         "Status Pagamento", "Consultar Imposto", "Desconto"],
+        "Menu de ajuda exibido",
+    ),
+    "nao_entendido": (
+        None, "erro",
+        ["Formas de pagamento", "Estorno / Reembolso", "Segunda Via Boleto", "Nova conversa"],
+        "Mensagem nao compreendida",
+    ),
+    "limite_credito": (
+        "limite_credito", "info", [],
+        "Fluxo iniciado: Consulta de Limite de Credito",
+    ),
+    # ── Intenções existentes ────────────────────────────────────────────
+    "saudacoes": (
+        None, "info",
+        ["Formas de pagamento", "Estorno / Reembolso", "Nota Fiscal",
+         "Calcular Frete", "Segunda Via Boleto", "Negociar Divida",
+         "Status Pagamento", "Consultar Imposto"],
+        "Novo atendimento iniciado",
+    ),
+    "pagamento": (
+        None, "info",
+        ["Segunda Via Boleto", "Status Pagamento", "Nova conversa"],
+        "Consulta: Formas de Pagamento",
+    ),
+    "desconto": (
+        "desconto", "info", [],
+        "Fluxo iniciado: Desconto",
+    ),
+    "devolucao": (
+        None, "info",
+        ["Encontrar unidade", "Status Pagamento", "Nova conversa"],
+        "Consulta: Estorno / Reembolso",
+    ),
+    "d_devolucao": (
+        None, "info",
+        ["Status Pagamento", "Nova conversa"],
+        "Consulta: Detalhes do Reembolso",
+    ),
+    "nota_fiscal": (
+        "nota_fiscal", "info", [],
+        "Fluxo iniciado: Nota Fiscal",
+    ),
+    "debito": (
+        "negociar_divida", "alerta",
+        ["Sim, confirmo", "Nao, enganei-me"],
+        "Fluxo iniciado: Negociar Divida",
+    ),
+    "imposto": (
+        "imposto", "info", [],
+        "Fluxo iniciado: Consultar Imposto",
+    ),
+    "boleto": (
+        "segunda_via", "info",
+        ["PF - Pessoa Fisica", "PJ - Pessoa Juridica"],
+        "Fluxo iniciado: Segunda Via Boleto",
+    ),
+    "status": (
+        None, "info", [],
+        "Consulta: Status de Pagamento",
+    ),
+    "frete": (
+        "frete", "info", [],
+        "Fluxo iniciado: Calcular Frete",
+    ),
+    "consulta": (
+        None, "info",
+        ["Nova conversa"],
+        "Consulta: Orcamento / Producao",
+    ),
+    "unidades": (
+        None, "info",
+        ["Nova conversa"],
+        "Consulta: Localizar Unidade",
+    ),
+    "cancelamento": (
+        None, "info",
+        ["Status Pagamento", "Nova conversa"],
+        "Consulta: Cancelamento",
+    ),
+    "comprovante": (
+        None, "info",
+        ["Status Pagamento", "Nova conversa"],
+        "Consulta: Comprovante de Pagamento",
+    ),
+    "falar_atendente": (
+        None, "alerta",
+        ["Nova conversa"],
+        "Transferencia para atendente humano",
+    ),
+    "alterar_dados": (
+        None, "info",
+        ["Nova conversa"],
+        "Consulta: Alterar Dados Cadastrais",
+    ),
+    "estorno_atrasado": (
+        None, "alerta",
+        ["Status Pagamento", "Nova conversa"],
+        "Consulta: Estorno Atrasado",
+    ),
+    "horario_atendimento": (
+        None, "info",
+        ["Nova conversa"],
+        "Consulta: Horario de Atendimento",
+    ),
+    "despedida": (
+        None, "info", [],
+        "Atendimento finalizado pelo cliente",
+    ),
+    "erro_pagamento": (
+        None, "erro",
+        ["Status Pagamento", "Nova conversa"],
+        "Consulta: Erro de Pagamento",
+    ),
+}
+
+# Etapa inicial de cada fluxo (etapa = 1 ao iniciar)
+FLUXO_ETAPA_INICIAL: dict[str, int] = {
+    "nota_fiscal":    1,
+    "negociar_divida": 1,
+    "imposto":        1,
+    "segunda_via":    1,
+    "frete":          1,
+    "desconto":       1,
+    "limite_credito": 1,
+}
+
+
+# ─────────────────────────────────────────────
 # Motor de respostas do chatbot
 # ─────────────────────────────────────────────
+
 def processar_mensagem(mensagem: str) -> dict:
     """
     Processa a mensagem do usuário e retorna um dicionário com:
@@ -53,17 +231,18 @@ def processar_mensagem(mensagem: str) -> dict:
     msg = normalizar(mensagem)
     now = hora_atual()
 
-    # ── Fluxo em andamento ──────────────────────────────────────────────
+    # ── Fluxos em andamento ─────────────────────────────────────────────
     fluxo = estado_conversa.get("fluxo")
     etapa = estado_conversa.get("etapa", 0)
 
+    # ── Fluxo: Nota Fiscal ──────────────────────────────────────────────
     if fluxo == "nota_fiscal":
         if etapa == 1:
             estado_conversa["dados"]["nome"] = mensagem
             estado_conversa["etapa"] = 2
-            registrar_historico(f"Nota Fiscal – nome informado: {mensagem}")
+            registrar_historico(f"Nota Fiscal - nome informado: {mensagem}")
             return {
-                "resposta": "Obrigado! Agora informe o seu **CPF**:",
+                "resposta": "Obrigado! Agora informe o seu CPF:",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
@@ -72,7 +251,7 @@ def processar_mensagem(mensagem: str) -> dict:
             estado_conversa["dados"]["cpf"] = mensagem
             estado_conversa["etapa"] = 3
             return {
-                "resposta": "Perfeito! Por último, informe o **ID do Pedido**:",
+                "resposta": "Perfeito! Por ultimo, informe o ID do Pedido:",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
@@ -80,57 +259,57 @@ def processar_mensagem(mensagem: str) -> dict:
         if etapa == 3:
             estado_conversa["dados"]["pedido"] = mensagem
             nome = estado_conversa["dados"].get("nome", "")
-            registrar_historico(f"Nota Fiscal – solicitação concluída para {nome}")
+            registrar_historico(f"Nota Fiscal - solicitacao concluida para {nome}")
             estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
             return {
                 "resposta": (
-                    "✅ Dados recebidos com sucesso!\n\n"
-                    "Sua **nota fiscal** será emitida e enviada para o e-mail "
-                    "cadastrado em até **24 horas úteis**.\n\n"
+                    "Dados recebidos com sucesso! "
+                    "Sua nota fiscal sera emitida e enviada para o e-mail "
+                    "cadastrado em ate 24 horas uteis. "
                     "Posso ajudar com mais alguma coisa?"
                 ),
                 "tipo": "sucesso",
-                "opcoes": ["💳 Formas de pagamento", "🔍 Status Pagamento", "↺ Nova conversa"],
+                "opcoes": ["Formas de pagamento", "Status Pagamento", "Nova conversa"],
                 "timestamp": now,
             }
 
+    # ── Fluxo: Frete ────────────────────────────────────────────────────
     if fluxo == "frete":
         if etapa == 1:
             estado_conversa["dados"]["endereco"] = mensagem
             estado_conversa["etapa"] = 2
             return {
-                "resposta": "Ótimo! Agora informe o seu **CEP** (somente números):",
+                "resposta": "Otimo! Agora informe o seu CEP (somente numeros):",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
             }
         if etapa == 2:
             cep = re.sub(r"\D", "", mensagem)
-            registrar_historico(f"Frete calculado – CEP: {cep}")
+            registrar_historico(f"Frete calculado - CEP: {cep}")
             estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
             return {
                 "resposta": (
-                    f"📦 Frete calculado para o CEP **{cep}**:\n\n"
-                    "| Modalidade | Prazo | Valor |\n"
-                    "|---|---|---|\n"
-                    "| PAC (Correios) | 7–12 dias úteis | R$ 18,90 |\n"
-                    "| SEDEX (Correios) | 2–4 dias úteis | R$ 34,50 |\n"
-                    "| Transportadora | 5–8 dias úteis | R$ 22,00 |\n\n"
+                    f"Frete calculado para o CEP {cep}. "
+                    "PAC (Correios): 7-12 dias uteis, R$ 18,90. "
+                    "SEDEX (Correios): 2-4 dias uteis, R$ 34,50. "
+                    "Transportadora: 5-8 dias uteis, R$ 22,00. "
                     "Posso ajudar com mais alguma coisa?"
                 ),
                 "tipo": "info",
-                "opcoes": ["📄 Segunda Via Boleto", "🔍 Status Pagamento", "↺ Nova conversa"],
+                "opcoes": ["Segunda Via Boleto", "Status Pagamento", "Nova conversa"],
                 "timestamp": now,
             }
 
+    # ── Fluxo: Segunda Via Boleto ───────────────────────────────────────
     if fluxo == "segunda_via":
         if etapa == 1:
-            tipo_pessoa = "PJ" if "pj" in msg or "juridica" in msg or "empresa" in msg else "PF"
+            tipo_pessoa = "PJ" if any(p in msg for p in ["pj", "juridica", "empresa"]) else "PF"
             estado_conversa["dados"]["tipo"] = tipo_pessoa
             estado_conversa["etapa"] = 2
-            registrar_historico(f"Segunda Via Boleto – tipo: {tipo_pessoa}")
+            registrar_historico(f"Segunda Via Boleto - tipo: {tipo_pessoa}")
             return {
-                "resposta": f"Entendido! Você é **{tipo_pessoa}**. Informe o número do seu **CPF/CNPJ**:",
+                "resposta": f"Entendido! Voce e {tipo_pessoa}. Informe o numero do seu CPF/CNPJ:",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
@@ -139,36 +318,37 @@ def processar_mensagem(mensagem: str) -> dict:
             estado_conversa["dados"]["documento"] = mensagem
             estado_conversa["etapa"] = 3
             return {
-                "resposta": "Agora informe o **ID do Pedido** ou número do boleto:",
+                "resposta": "Agora informe o ID do Pedido ou numero do boleto:",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
             }
         if etapa == 3:
-            registrar_historico(f"Segunda Via Boleto – concluída, pedido: {mensagem}")
+            registrar_historico(f"Segunda Via Boleto - concluida, pedido: {mensagem}")
             estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
             return {
                 "resposta": (
-                    "✅ Segunda via gerada com sucesso!\n\n"
-                    "O boleto foi enviado para o **e-mail cadastrado** e também "
-                    "estará disponível na sua área do cliente.\n\n"
-                    "**Vencimento:** 3 dias úteis a partir de hoje.\n\n"
+                    "Segunda via gerada com sucesso! "
+                    "O boleto foi enviado para o e-mail cadastrado e tambem "
+                    "estara disponivel na sua area do cliente. "
+                    "Vencimento: 3 dias uteis a partir de hoje. "
                     "Posso ajudar com mais alguma coisa?"
                 ),
                 "tipo": "sucesso",
-                "opcoes": ["🔍 Status Pagamento", "💳 Formas de pagamento", "↺ Nova conversa"],
+                "opcoes": ["Status Pagamento", "Formas de pagamento", "Nova conversa"],
                 "timestamp": now,
             }
 
+    # ── Fluxo: Negociar Dívida ──────────────────────────────────────────
     if fluxo == "negociar_divida":
         if etapa == 1:
-            if "sim" in msg or "s" == msg or "confirmo" in msg or "yes" in msg:
+            if any(p in msg for p in ["sim", "confirmo", "yes", "s"]):
                 estado_conversa["etapa"] = 2
-                registrar_historico("Negociação de Dívida – confirmada pelo cliente")
+                registrar_historico("Negociacao de Divida - confirmada pelo cliente")
                 return {
                     "resposta": (
-                        "Entendido! Vamos negociar. Informe o **valor aproximado** "
-                        "da sua dívida (em R$):"
+                        "Entendido! Vamos negociar. Informe o valor aproximado "
+                        "da sua divida (em R$):"
                     ),
                     "tipo": "alerta",
                     "opcoes": [],
@@ -177,32 +357,33 @@ def processar_mensagem(mensagem: str) -> dict:
             else:
                 estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
                 return {
-                    "resposta": "Tudo bem! Se precisar de ajuda, é só chamar. 😊",
+                    "resposta": "Tudo bem! Se precisar de ajuda, e so chamar.",
                     "tipo": "info",
-                    "opcoes": ["💳 Formas de pagamento", "🔍 Status Pagamento"],
+                    "opcoes": ["Formas de pagamento", "Status Pagamento"],
                     "timestamp": now,
                 }
         if etapa == 2:
-            registrar_historico(f"Negociação de Dívida – valor informado: {mensagem}")
+            registrar_historico(f"Negociacao de Divida - valor informado: {mensagem}")
             estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
             return {
                 "resposta": (
-                    "✅ Proposta de negociação registrada!\n\n"
-                    "Nossa equipe financeira entrará em contato em até **2 dias úteis** "
-                    "com as melhores condições de parcelamento.\n\n"
+                    "Proposta de negociacao registrada! "
+                    "Nossa equipe financeira entrara em contato em ate 2 dias uteis "
+                    "com as melhores condicoes de parcelamento. "
                     "Posso ajudar com mais alguma coisa?"
                 ),
                 "tipo": "sucesso",
-                "opcoes": ["🔍 Status Pagamento", "↺ Nova conversa"],
+                "opcoes": ["Status Pagamento", "Nova conversa"],
                 "timestamp": now,
             }
 
+    # ── Fluxo: Imposto ──────────────────────────────────────────────────
     if fluxo == "imposto":
         if etapa == 1:
             estado_conversa["dados"]["cnpj"] = mensagem
             estado_conversa["etapa"] = 2
             return {
-                "resposta": "Ótimo! Agora informe o **Nome Completo** do responsável:",
+                "resposta": "Otimo! Agora informe o Nome Completo do responsavel:",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
@@ -211,226 +392,150 @@ def processar_mensagem(mensagem: str) -> dict:
             estado_conversa["dados"]["nome"] = mensagem
             estado_conversa["etapa"] = 3
             return {
-                "resposta": "Por último, informe o **Nome Fantasia** da instituição:",
+                "resposta": "Por ultimo, informe o Nome Fantasia da instituicao:",
                 "tipo": "info",
                 "opcoes": [],
                 "timestamp": now,
             }
         if etapa == 3:
-            registrar_historico(f"Consulta de Imposto – concluída para {mensagem}")
+            registrar_historico(f"Consulta de Imposto - concluida para {mensagem}")
             estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
             return {
                 "resposta": (
-                    "✅ Consulta registrada!\n\n"
-                    "O relatório de impostos será enviado para o **e-mail do CNPJ** "
-                    "cadastrado em até **48 horas úteis**.\n\n"
+                    "Consulta registrada! "
+                    "O relatorio de impostos sera enviado para o e-mail do CNPJ "
+                    "cadastrado em ate 48 horas uteis. "
                     "Posso ajudar com mais alguma coisa?"
                 ),
                 "tipo": "sucesso",
-                "opcoes": ["🔍 Status Pagamento", "↺ Nova conversa"],
+                "opcoes": ["Status Pagamento", "Nova conversa"],
                 "timestamp": now,
             }
 
-    # ── Intenções de entrada ────────────────────────────────────────────
-    if any(p in msg for p in ["ola", "oi", "bom dia", "boa tarde", "boa noite", "hello", "hi"]):
-        registrar_historico("Novo atendimento iniciado")
-        return {
-            "resposta": (
-                "Olá! Bem-vindo(a) ao **Assistente Financeiro FashionFlow**! 👋\n\n"
-                "Como posso te ajudar hoje? Escolha uma das opções abaixo ou "
-                "digite sua dúvida:"
-            ),
-            "tipo": "info",
-            "opcoes": [
-                "💳 Formas de pagamento",
-                "🔄 Estorno / Reembolso",
-                "🧾 Nota Fiscal",
-                "🚚 Calcular Frete",
-                "📄 Segunda Via Boleto",
-                "📋 Negociar Dívida",
-                "🔍 Status Pagamento",
-                "🏛️ Consultar Imposto",
-            ],
-            "timestamp": now,
-        }
+    # ── Fluxo: Desconto (novo) ──────────────────────────────────────────
+    if fluxo == "desconto":
+        if etapa == 1:
+            estado_conversa["dados"]["produto"] = mensagem
+            estado_conversa["etapa"] = 2
+            registrar_historico(f"Desconto - produto/lote informado: {mensagem}")
+            return {
+                "resposta": "Entendido! Qual a quantidade aproximada do pedido?",
+                "tipo": "info",
+                "opcoes": [],
+                "timestamp": now,
+            }
+        if etapa == 2:
+            estado_conversa["dados"]["quantidade"] = mensagem
+            estado_conversa["etapa"] = 3
+            return {
+                "resposta": "Qual a forma de pagamento preferida? (PIX, cartao, boleto, transferencia)",
+                "tipo": "info",
+                "opcoes": ["PIX / Transferencia", "Cartao de credito", "Boleto"],
+                "timestamp": now,
+            }
+        if etapa == 3:
+            estado_conversa["dados"]["pagamento"] = mensagem
+            produto   = estado_conversa["dados"].get("produto", "")
+            qtd       = estado_conversa["dados"].get("quantidade", "")
+            pagamento = estado_conversa["dados"].get("pagamento", "")
+            registrar_historico(
+                f"Desconto - solicitacao registrada: produto={produto}, "
+                f"qtd={qtd}, pagamento={pagamento}"
+            )
+            estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
+            return {
+                "resposta": (
+                    "Solicitacao de desconto registrada! "
+                    "Um de nossos representantes entrara em contato em breve "
+                    "para formalizar a proposta. "
+                    "Posso ajudar com mais alguma coisa?"
+                ),
+                "tipo": "sucesso",
+                "opcoes": ["Status Pagamento", "Nova conversa"],
+                "timestamp": now,
+            }
 
-    if any(p in msg for p in ["pagamento", "pagar", "forma", "pix", "cartao", "credito", "debito"]):
-        registrar_historico("Consulta: Formas de Pagamento")
-        return {
-            "resposta": (
-                "💳 **Formas de Pagamento aceitas pela FashionFlow:**\n\n"
-                "| Método | Detalhes |\n"
-                "|---|---|\n"
-                "| PIX | Aprovação imediata, disponível 24h |\n"
-                "| Cartão de Débito | Aprovação imediata |\n"
-                "| Cartão de Crédito | Até 12x sem juros |\n"
-                "| Boleto Bancário | Vencimento em 3 dias úteis |\n\n"
-                "Posso ajudar com mais alguma coisa?"
-            ),
-            "tipo": "info",
-            "opcoes": ["📄 Segunda Via Boleto", "🔍 Status Pagamento", "↺ Nova conversa"],
-            "timestamp": now,
-        }
+    # ── Fluxo: Limite de Crédito (novo) ────────────────────────────────
+    if fluxo == "limite_credito":
+        if etapa == 1:
+            cpf = mensagem.strip()
+            registrar_historico(f"Limite de Credito - CPF informado: {cpf}")
+            estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
+            return {
+                "resposta": (
+                    "CPF recebido! Nossa equipe realizara a analise e retornara "
+                    "em ate 1 dia util com o resultado sobre o seu limite de credito. "
+                    "Posso ajudar com mais alguma coisa?"
+                ),
+                "tipo": "sucesso",
+                "opcoes": ["Status Pagamento", "Nova conversa"],
+                "timestamp": now,
+            }
 
-    if any(p in msg for p in ["estorno", "reembolso", "devolver", "devolucao", "devolução"]):
-        registrar_historico("Consulta: Estorno / Reembolso")
-        return {
-            "resposta": (
-                "🔄 **Política de Estorno e Reembolso:**\n\n"
-                "Iremos reembolsar o seu valor no prazo de **3 dias úteis**.\n\n"
-                "Para isso, por favor **devolva a peça de roupa** na nossa unidade "
-                "mais próxima de você.\n\n"
-                "Deseja localizar a unidade mais próxima?"
-            ),
-            "tipo": "info",
-            "opcoes": ["📍 Encontrar unidade", "🔍 Status Pagamento", "↺ Nova conversa"],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["nota fiscal", "cupom fiscal", "nf", "nota"]):
-        registrar_historico("Fluxo iniciado: Nota Fiscal")
-        estado_conversa = {"fluxo": "nota_fiscal", "etapa": 1, "dados": {}}
-        return {
-            "resposta": (
-                "🧾 **Emissão de Nota Fiscal**\n\n"
-                "Precisamos de alguns dados do seu pedido. "
-                "Por favor, informe o seu **Nome Completo**:"
-            ),
-            "tipo": "info",
-            "opcoes": [],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["frete", "entrega", "calcular frete", "envio"]):
-        registrar_historico("Fluxo iniciado: Calcular Frete")
-        estado_conversa = {"fluxo": "frete", "etapa": 1, "dados": {}}
-        return {
-            "resposta": (
-                "🚚 **Calcular Frete**\n\n"
-                "Vamos calcular o valor do seu frete! "
-                "Informe o seu **endereço completo** (rua, número, cidade, estado):"
-            ),
-            "tipo": "info",
-            "opcoes": [],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["segunda via", "segunda via boleto", "boleto", "2 via", "2via"]):
-        registrar_historico("Fluxo iniciado: Segunda Via Boleto")
-        estado_conversa = {"fluxo": "segunda_via", "etapa": 1, "dados": {}}
-        return {
-            "resposta": (
-                "📄 **Segunda Via de Boleto**\n\n"
-                "Vamos prosseguir com o andamento da sua segunda via. "
-                "Você é **PF (Pessoa Física)** ou **PJ (Pessoa Jurídica)**?"
-            ),
-            "tipo": "info",
-            "opcoes": ["PF – Pessoa Física", "PJ – Pessoa Jurídica"],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["negociar", "divida", "dívida", "debito", "débito", "inadimplente"]):
-        registrar_historico("Fluxo iniciado: Negociar Dívida")
-        estado_conversa = {"fluxo": "negociar_divida", "etapa": 1, "dados": {}}
-        return {
-            "resposta": (
-                "📋 **Negociação de Dívida**\n\n"
-                "Você está em débito com a nossa empresa? "
-                "Confirme para prosseguirmos com o seu atendimento."
-            ),
-            "tipo": "alerta",
-            "opcoes": ["✅ Sim, confirmo", "❌ Não, enganei-me"],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["status", "status pagamento", "situacao", "situação", "verificar"]):
-        registrar_historico("Consulta: Status de Pagamento")
-        return {
-            "resposta": (
-                "🔍 **Status de Pagamento**\n\n"
-                "Para verificar o status do seu pagamento, acesse a sua "
-                "**área do cliente** em fashionflow.com.br/minha-conta\n\n"
-                "Ou informe o **ID do Pedido** que verifico agora mesmo:"
-            ),
-            "tipo": "info",
-            "opcoes": [],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["imposto", "tributo", "cnpj", "consultar imposto"]):
-        registrar_historico("Fluxo iniciado: Consultar Imposto")
-        estado_conversa = {"fluxo": "imposto", "etapa": 1, "dados": {}}
-        return {
-            "resposta": (
-                "🏛️ **Consulta de Impostos**\n\n"
-                "Para consultar impostos, preciso de alguns dados. "
-                "Por favor, informe o seu **CNPJ** (somente números):"
-            ),
-            "tipo": "info",
-            "opcoes": [],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["unidade", "loja", "endereco", "endereço", "onde", "localizar", "mapa"]):
-        registrar_historico("Consulta: Localizar Unidade")
-        return {
-            "resposta": (
-                "📍 **Encontrar Unidade FashionFlow**\n\n"
-                "Para encontrar a loja mais perto de você, acesse o nosso "
-                "**[Mapa de Lojas](https://fashionflow.com.br/lojas)**\n\n"
-                "Ou me envie o seu **CEP** que verifico agora mesmo!"
-            ),
-            "tipo": "info",
-            "opcoes": [],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["correios", "rastrear", "rastreamento", "tracking"]):
-        registrar_historico("Consulta: Rastreamento Correios")
-        return {
-            "resposta": (
-                "📮 **Rastreamento pelos Correios**\n\n"
-                "Para rastrear seu pedido, acesse:\n"
-                "**[rastreamento.correios.com.br](https://rastreamento.correios.com.br)**\n\n"
-                "Informe o **código de rastreio** que está no e-mail de confirmação "
-                "de envio. Posso ajudar com mais alguma coisa?"
-            ),
-            "tipo": "info",
-            "opcoes": ["🔍 Status Pagamento", "↺ Nova conversa"],
-            "timestamp": now,
-        }
-
-    if any(p in msg for p in ["nova conversa", "reiniciar", "recomecar", "recomeçar", "reset"]):
+    # ── Reiniciar conversa ──────────────────────────────────────────────
+    if any(p in msg for p in ["nova conversa", "reiniciar", "recomecar", "reset"]):
         estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
-        registrar_historico("Conversa reiniciada pelo usuário")
+        registrar_historico("Conversa reiniciada pelo usuario")
         return {
-            "resposta": (
-                "🔄 Conversa reiniciada!\n\n"
-                "Olá novamente! Como posso te ajudar?"
-            ),
+            "resposta": "Conversa reiniciada! Ola novamente! Como posso te ajudar?",
             "tipo": "info",
             "opcoes": [
-                "💳 Formas de pagamento",
-                "🔄 Estorno / Reembolso",
-                "🧾 Nota Fiscal",
-                "🚚 Calcular Frete",
+                "Formas de pagamento",
+                "Estorno / Reembolso",
+                "Nota Fiscal",
+                "Calcular Frete",
             ],
+            "timestamp": now,
+        }
+
+    # ── Lookup de intenção no CSV ───────────────────────────────────────
+    intencao = identificar_intencao(msg)
+
+    if intencao:
+        nome = intencao["intencao"]
+        cfg  = INTENCAO_CONFIG.get(nome)
+
+        if not cfg:
+            # Intencao no CSV mas sem config: resposta simples
+            return {
+                "resposta": intencao["resposta"],
+                "tipo": "info",
+                "opcoes": ["Nova conversa"],
+                "timestamp": now,
+            }
+
+        fluxo_novo, tipo, opcoes, log = cfg
+        registrar_historico(log)
+
+        if fluxo_novo:
+            estado_conversa = {
+                "fluxo": fluxo_novo,
+                "etapa": FLUXO_ETAPA_INICIAL.get(fluxo_novo, 1),
+                "dados": {},
+            }
+
+        return {
+            "resposta": intencao["resposta"],
+            "tipo": tipo,
+            "opcoes": opcoes,
             "timestamp": now,
         }
 
     # ── Fallback ────────────────────────────────────────────────────────
+    # Tenta usar a resposta da intencao "nao_entendido" do CSV, se existir
+    fallback = next((i for i in INTENCOES if i["intencao"] == "nao_entendido"), None)
+    resposta_fallback = (
+        fallback["resposta"] if fallback
+        else (
+            "Desculpe, nao entendi sua mensagem. "
+            "Tente palavras como: boleto, pagamento, estorno, "
+            "frete, nota fiscal, unidade ou status."
+        )
+    )
     return {
-        "resposta": (
-            "Desculpe, não entendi sua mensagem. 🤔\n\n"
-            "Tente palavras como: **boleto**, **pagamento**, **estorno**, "
-            "**frete**, **nota fiscal**, **unidade** ou **correios**."
-        ),
+        "resposta": resposta_fallback,
         "tipo": "erro",
-        "opcoes": [
-            "💳 Formas de pagamento",
-            "🔄 Estorno / Reembolso",
-            "📄 Segunda Via Boleto",
-        ],
+        "opcoes": ["Formas de pagamento", "Estorno / Reembolso", "Segunda Via Boleto"],
         "timestamp": now,
     }
 
@@ -460,7 +565,7 @@ def api_reset():
     """Reinicia o estado da conversa."""
     global estado_conversa
     estado_conversa = {"fluxo": None, "etapa": 0, "dados": {}}
-    registrar_historico("Sessão reiniciada via API")
+    registrar_historico("Sessao reiniciada via API")
     return jsonify({"status": "ok", "timestamp": hora_atual()})
 
 
