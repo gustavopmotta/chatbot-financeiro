@@ -3,13 +3,18 @@
   "builds": [
     {
       "src": "api/bot.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": { "wsgi_path": "api.bot:app" }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/bot.py"
+    },
+    {
       "src": "/(.*)",
-      "dest": "api/bot.py"
+      "dest": "/api/bot.py"
     }
   ]
 }
